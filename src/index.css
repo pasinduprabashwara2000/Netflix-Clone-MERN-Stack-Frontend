@@ -12,6 +12,22 @@
   --color-muted: #9b9ba6;
   --animate-fade-in: fade-in 0.25s ease-out;
 
+  --animate-toast-in: toast-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-toast-progress: toast-progress linear forwards;
+  --animate-pop-in: pop-in 0.2s ease-out;
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
