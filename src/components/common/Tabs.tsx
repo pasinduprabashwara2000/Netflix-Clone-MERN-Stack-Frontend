@@ -18,10 +18,10 @@ function Tabs({ tabs, initial }: TabsProps) {
     const current = tabs.find((t) => t.id === active) ?? tabs[0]
 
     return (
-        <div>
+        <div className="font-mono">
             <div
                 role="tablist"
-                className="flex gap-1 overflow-x-auto border-b border-line"
+                className="flex gap-3 overflow-x-auto border-b-2 border-zinc-800 px-4 pb-4 pt-2"
             >
                 {tabs.map((t) => {
                     const selected = t.id === current.id
@@ -32,10 +32,10 @@ function Tabs({ tabs, initial }: TabsProps) {
                             type="button"
                             aria-selected={selected}
                             onClick={() => setActive(t.id)}
-                            className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white ${
+                            className={`flex shrink-0 items-center gap-2 border-2 px-4 py-3 text-xs font-black uppercase tracking-widest whitespace-nowrap transition active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400 ${
                                 selected
-                                    ? 'border-brand text-white'
-                                    : 'border-transparent text-muted hover:border-zinc-600 hover:text-white'
+                                    ? 'border-black bg-lime-400 text-black shadow-[4px_4px_0_0_#000]'
+                                    : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-lime-400 hover:text-lime-400'
                             }`}
                         >
                             {t.icon}
@@ -45,7 +45,7 @@ function Tabs({ tabs, initial }: TabsProps) {
                 })}
             </div>
 
-            <div role="tabpanel" key={current.id} className="animate-fade-in pt-6">
+            <div role="tabpanel" key={current.id} className="animate-fade-in pt-2">
                 {current.content}
             </div>
         </div>

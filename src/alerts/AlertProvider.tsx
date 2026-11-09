@@ -1,170 +1,173 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { AlertContext } from './context'
 import type { AlertApi, AlertType, ConfirmOptions } from './context'
+import { ui } from '../lib/ui'
 
-type Toast = { id: number; type: AlertType; title: string; message: string; duration: number }
-type PendingConfirm = ConfirmOptions & { resolve: (ok: boolean) => void }
-
-const DURATION: Record<AlertType, number> = { success: 3500, info: 4000, warning: 5000, error: 6500 }
-const DEFAULT_TITLE: Record<AlertType, string> = {
-  success: 'Success',
-  error: 'Something went wrong',
-  warning: 'Check your input',
-  info: 'Notice',
+type Toast = {
+    id: number
+    type: AlertType
+    message: string
 }
 
-const STYLE: Record<AlertType, { bar: string; icon: string; path: string }> = {
-  success: { bar: 'bg-emerald-500', icon: 'text-emerald-400 bg-emerald-500/15', path: 'M5 13l4 4L19 7' },
-  error: { bar: 'bg-brand', icon: 'text-red-400 bg-brand/15', path: 'M6 6l12 12M18 6L6 18' },
-  warning: { bar: 'bg-amber-500', icon: 'text-amber-400 bg-amber-500/15', path: 'M12 8v5m0 3.5h.01' },
-  info: { bar: 'bg-sky-500', icon: 'text-sky-400 bg-sky-500/15', path: 'M12 11v5m0-8.5h.01' },
+type PendingConfirm = ConfirmOptions & {
+    resolve: (value: boolean) => void
 }
 
-function Icon({ path, className }: { path: string; className: string }) {
-  return (
-    <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${className}`}>
-      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d={path} />
-      </svg>
-    </span>
-  )
+// Matches the badge palette / accent colors in ui.ts
+const styles: Record<AlertType, { border: string; shadow: string; badge: string; label: string }> = {
+    success: {
+        border: 'border-lime-400',
+        shadow: 'shadow-[4px_4px_0_0_#a3e635]',
+        badge: 'bg-lime-400 text-black',
+        label: 'Success',
+    },
+    error: {
+        border: 'border-red-500',
+        shadow: 'shadow-[4px_4px_0_0_#ef4444]',
+        badge: 'bg-red-500 text-white',
+        label: 'Error',
+    },
+    warning: {
+        border: 'border-yellow-300',
+        shadow: 'shadow-[4px_4px_0_0_#fde047]',
+        badge: 'bg-yellow-300 text-black',
+        label: 'Warning',
+    },
+    info: {
+        border: 'border-cyan-400',
+        shadow: 'shadow-[4px_4px_0_0_#22d3ee]',
+        badge: 'bg-cyan-400 text-black',
+        label: 'Info',
+    },
 }
 
-function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: number) => void }) {
-  const [paused, setPaused] = useState(false)
-  const s = STYLE[toast.type]
+function ToastItem({ toast, close }: { toast: Toast; close: (id: number) => void }) {
+    const style = styles[toast.type]
 
-  useEffect(() => {
-    if (paused) return
-    const t = setTimeout(() => onClose(toast.id), toast.duration)
-    return () => clearTimeout(t)
-  }, [paused, toast.id, toast.duration, onClose])
+    useEffect(() => {
+        const timer = setTimeout(() => close(toast.id), 4000)
+        return () => clearTimeout(timer)
+    }, [toast.id, close])
 
-  return (
-    <div
-      role={toast.type === 'error' ? 'alert' : 'status'}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      className="pointer-events-auto relative flex animate-toast-in items-start gap-3 overflow-hidden rounded-xl border border-line bg-panel p-4 pr-10 shadow-2xl shadow-black/60"
-    >
-      <Icon path={s.path} className={s.icon} />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">{toast.title}</p>
-        <p className="mt-0.5 text-sm break-words text-zinc-300">{toast.message}</p>
-      </div>
-      <button
-        onClick={() => onClose(toast.id)}
-        aria-label="Dismiss"
-        className="absolute top-2.5 right-2.5 rounded-md p-1 text-muted transition hover:bg-white/10 hover:text-white"
-      >
-        <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </button>
-      <span
-        className={`absolute bottom-0 left-0 h-0.5 w-full origin-left animate-toast-progress ${s.bar}`}
-        style={{ animationDuration: `${toast.duration}ms`, animationPlayState: paused ? 'paused' : 'running' }}
-      />
-    </div>
-  )
-}
+    return (
+        <div
+            role="status"
+            className={`border-2 bg-zinc-900 p-4 font-mono ${style.border} ${style.shadow}`}
+        >
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col items-start gap-2">
+                    <span
+                        className={`border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${style.badge}`}
+                    >
+                        {style.label}
+                    </span>
+                    <p className="text-sm font-medium text-zinc-100">{toast.message}</p>
+                </div>
 
-function ConfirmDialog({ pending, onAnswer }: { pending: PendingConfirm; onAnswer: (ok: boolean) => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null)
-  const danger = pending.danger ?? true
-
-  useEffect(() => {
-    cancelRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onAnswer(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onAnswer])
-
-  return (
-    <div
-      className="fixed inset-0 z-[110] flex animate-fade-in items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      onMouseDown={(e) => e.target === e.currentTarget && onAnswer(false)}
-    >
-      <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" className="w-full max-w-sm animate-pop-in rounded-2xl border border-line bg-panel p-6 shadow-2xl shadow-black/70">
-        <Icon
-          path={danger ? 'M12 8v5m0 3.5h.01' : 'M12 11v5m0-8.5h.01'}
-          className={danger ? 'text-red-400 bg-brand/15' : 'text-sky-400 bg-sky-500/15'}
-        />
-        <h3 id="confirm-title" className="mt-4 text-lg font-bold">{pending.title ?? 'Are you sure?'}</h3>
-        <p className="mt-1.5 text-sm text-zinc-300">{pending.message}</p>
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            ref={cancelRef}
-            onClick={() => onAnswer(false)}
-            className="rounded-lg border border-line bg-raised px-4 py-2 text-sm font-medium transition hover:bg-zinc-700 active:scale-95"
-          >
-            {pending.cancelText ?? 'Cancel'}
-          </button>
-          <button
-            onClick={() => onAnswer(true)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition active:scale-95 ${danger ? 'bg-brand hover:bg-brand-600' : 'bg-sky-600 hover:bg-sky-500'}`}
-          >
-            {pending.confirmText ?? (danger ? 'Delete' : 'Confirm')}
-          </button>
+                <button
+                    onClick={() => close(toast.id)}
+                    aria-label="Dismiss"
+                    className="shrink-0 border-2 border-zinc-700 px-2 py-0.5 text-xs font-black text-zinc-400 transition hover:border-lime-400 hover:text-lime-400 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400"
+                >
+                    ✕
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    )
+}
+
+function ConfirmDialog({ pending, answer }: { pending: PendingConfirm; answer: (value: boolean) => void }) {
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') answer(false)
+        }
+
+        window.addEventListener('keydown', handleKey)
+        return () => window.removeEventListener('keydown', handleKey)
+    }, [answer])
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 font-mono"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) answer(false)
+            }}
+        >
+            <div
+                role="alertdialog"
+                aria-modal="true"
+                className="w-full max-w-sm border-2 border-zinc-800 bg-zinc-900 p-6 shadow-[6px_6px_0_0_#a3e635]"
+            >
+                <h2 className={ui.cardTitle}>{pending.title ?? 'Are you sure?'}</h2>
+                <p className="mb-6 text-sm font-medium text-zinc-400">{pending.message}</p>
+
+                <div className={ui.actions}>
+                    <button onClick={() => answer(false)} className={ui.btn}>
+                        {pending.cancelText ?? 'Cancel'}
+                    </button>
+
+                    <button
+                        onClick={() => answer(true)}
+                        className="border-2 border-black bg-red-500 px-5 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0_0_#000] transition hover:bg-red-400 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                    >
+                        {pending.confirmText ?? 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export function AlertProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
-  const [pending, setPending] = useState<PendingConfirm | null>(null)
-  const nextId = useRef(1)
+    const [toasts, setToasts] = useState<Toast[]>([])
+    const [pending, setPending] = useState<PendingConfirm | null>(null)
+    const id = useRef(0)
 
-  const close = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), [])
+    const close = useCallback((id: number) => {
+        setToasts((old) => old.filter((toast) => toast.id !== id))
+    }, [])
 
-  const notify = useCallback((type: AlertType, message: string, title?: string) => {
-    const id = nextId.current++
-    setToasts((t) => [...t.slice(-3), { id, type, message, title: title ?? DEFAULT_TITLE[type], duration: DURATION[type] }])
-  }, [])
+    const notify = useCallback((type: AlertType, message: string) => {
+        setToasts((old) => [...old, { id: ++id.current, type, message }])
+    }, [])
 
-  const confirm = useCallback(
-    (options: ConfirmOptions | string) =>
-      new Promise<boolean>((resolve) => {
-        const opts = typeof options === 'string' ? { message: options } : options
-        setPending({ ...opts, resolve })
-      }),
-    [],
-  )
+    const confirm = useCallback((options: ConfirmOptions | string) => {
+        return new Promise<boolean>((resolve) => {
+            setPending({
+                ...(typeof options === 'string' ? { message: options } : options),
+                resolve,
+            })
+        })
+    }, [])
 
-  const answer = useCallback(
-    (ok: boolean) => {
-      pending?.resolve(ok)
-      setPending(null)
-    },
-    [pending],
-  )
+    const answer = useCallback((value: boolean) => {
+        setPending((current) => {
+            current?.resolve(value)
+            return null
+        })
+    }, [])
 
-  const api = useMemo<AlertApi>(
-    () => ({
-      notify,
-      confirm,
-      success: (m, t) => notify('success', m, t),
-      error: (m, t) => notify('error', m, t),
-      warning: (m, t) => notify('warning', m, t),
-      info: (m, t) => notify('info', m, t),
-    }),
-    [notify, confirm],
-  )
+    const api = useMemo<AlertApi>(() => ({
+        notify,
+        confirm,
+        success: (message) => notify('success', message),
+        error: (message) => notify('error', message),
+        warning: (message) => notify('warning', message),
+        info: (message) => notify('info', message),
+    }), [notify, confirm])
 
-  return (
-    <AlertContext.Provider value={api}>
-      {children}
-      <div className="pointer-events-none fixed top-4 right-4 left-4 z-[100] flex flex-col gap-3 sm:left-auto sm:w-96">
-        {toasts.map((t) => (
-          <ToastItem key={t.id} toast={t} onClose={close} />
-        ))}
-      </div>
-      {pending && <ConfirmDialog pending={pending} onAnswer={answer} />}
-    </AlertContext.Provider>
-  )
+    return (
+        <AlertContext.Provider value={api}>
+            {children}
+
+            <div className="fixed right-4 top-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-4">
+                {toasts.map((toast) => (
+                    <ToastItem key={toast.id} toast={toast} close={close} />
+                ))}
+            </div>
+
+            {pending && <ConfirmDialog pending={pending} answer={answer} />}
+        </AlertContext.Provider>
+    )
 }

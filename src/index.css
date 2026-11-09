@@ -40,3 +40,11 @@
   option { @apply bg-panel text-white; }
   ::selection { @apply bg-brand/60; }
 }
+
+/* Hide scrollbars on horizontal rows (still scrollable) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
