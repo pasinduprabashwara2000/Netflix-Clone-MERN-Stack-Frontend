@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { planApi } from '../../services/api'
 import { ui } from '../../lib/ui'
 import type { Plan } from '../../services/api'
@@ -7,6 +9,7 @@ import { useAlert } from '../../alerts/context'
 function PlanManagement() {
   const { success, error, warning, confirm } = useAlert()
   const [plans, setPlans] = useState<Plan[]>([])
+  const pager = usePagination(plans);
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [maxStreams, setMaxStreams] = useState('')
@@ -117,7 +120,7 @@ function PlanManagement() {
             </tr>
             </thead>
             <tbody>
-            {plans.map((plan) => (
+            {pager.items.map((plan) => (
                 <tr key={plan._id} className={ui.tr}>
                   <td className={`${ui.td} font-semibold`}>{plan.name}</td>
                   <td className={ui.td}>${Number(plan.price).toFixed(2)}</td>
@@ -138,6 +141,8 @@ function PlanManagement() {
             </tbody>
           </table>
         </div>
+
+            <Pagination pager={pager} />
       </div>
   )
 }

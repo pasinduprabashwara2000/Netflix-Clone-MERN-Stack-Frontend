@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { ui } from "../../lib/ui";
 import { profileApi, userApi } from "../../services/api";
 import type { Profile, User } from "../../services/api";
@@ -54,6 +56,8 @@ function ProfileManagement() {
         );
     });
 
+    const pager = usePagination(filteredProfiles, search);
+
     const kidsCount = profiles.filter((p) => p.isKids).length;
 
     return (
@@ -107,7 +111,7 @@ function ProfileManagement() {
                         ) : filteredProfiles.length === 0 ? (
                             <tr><td colSpan={6} className={ui.empty}>No profiles found.</td></tr>
                         ) : (
-                            filteredProfiles.map((profile) => {
+                            pager.items.map((profile) => {
                                 const user = getUser(profile);
                                 return (
                                     <tr key={profile._id} className={ui.tr}>
@@ -149,6 +153,8 @@ function ProfileManagement() {
                         </tbody>
                     </table>
                 </div>
+
+            <Pagination pager={pager} />
             </div>
 
             {/* Profile Details */}

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { userApi } from '../../services/api'
 import { ui } from '../../lib/ui'
 import type { User } from '../../services/api'
@@ -7,6 +9,7 @@ import { useAlert } from '../../alerts/context'
 function UserManagement() {
   const { success, error, warning, confirm } = useAlert()
   const [users, setUsers] = useState<User[]>([])
+  const pager = usePagination(users);
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -123,7 +126,7 @@ function UserManagement() {
             </tr>
             </thead>
             <tbody>
-            {users.map((user) => (
+            {pager.items.map((user) => (
                 <tr key={user._id} className={ui.tr}>
                   <td className={`${ui.td} font-semibold`}>{user.name}</td>
                   <td className={`${ui.td} text-muted`}>{user.email}</td>
@@ -144,6 +147,8 @@ function UserManagement() {
             </tbody>
           </table>
         </div>
+
+            <Pagination pager={pager} />
       </div>
   )
 }

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { ui } from "../../lib/ui";
 import { seasonApi } from "../../services/api";
 import type { Season } from "../../services/api";
@@ -7,6 +9,7 @@ import { useAlert } from "../../alerts/context";
 function SeasonManagement() {
     const { success, error, warning, confirm } = useAlert();
     const [season, setSeason] = useState<Season[]>([]);
+    const pager = usePagination(season);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [seasonNo, setSeasonNo] = useState("");
     const [title, setTitle] = useState("");
@@ -142,7 +145,7 @@ function SeasonManagement() {
                             </tr>
                         )}
 
-                    {season.map((item) => (
+                    {pager.items.map((item) => (
                         <tr key={item._id} className={ui.tr}>
                             <td className={ui.td}>{item.seasonNumber}</td>
                             <td className={ui.td}>{item.title}</td>
@@ -158,6 +161,8 @@ function SeasonManagement() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination pager={pager} />
 
         </div>
     );

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { ui } from "../../lib/ui";
 import { episodeApi, seasonApi } from "../../services/api";
 import type { Episode, Season } from "../../services/api";
@@ -7,6 +9,7 @@ import { useAlert } from "../../alerts/context";
 function EpisodeManagement() {
     const { success, error, warning, confirm } = useAlert();
     const [episodes, setEpisodes] = useState<Episode[]>([]);
+    const pager = usePagination(episodes);
     const [seasons, setSeasons] = useState<Season[]>([]);
     const [selectId, setSelectId] = useState<string | null>(null);
     const [seasonId, setSeasonId] = useState("");
@@ -170,7 +173,7 @@ function EpisodeManagement() {
                         </tr>
                     </thead>
                     <tbody>
-                        {episodes.map((item) => (
+                        {pager.items.map((item) => (
                             <tr key={item._id} className={ui.tr}>
                                 <td className={ui.td}>{item.episodeNumber}</td>
                                 <td className={`${ui.td} font-semibold`}>{item.title}</td>
@@ -188,6 +191,8 @@ function EpisodeManagement() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination pager={pager} />
         </div>
     );
 }

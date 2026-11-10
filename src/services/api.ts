@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+export const API_ORIGIN = API_URL.replace(/\/api\/?$/, "");
 
 // PLAN
 export interface Plan {
@@ -63,6 +64,7 @@ export interface Content {
   videoUrl: string;
   isFeatured: boolean;
   avgRating: number;
+  genreId?: string;
 }
 
 // SEASON
@@ -101,7 +103,8 @@ async function request<T>(
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      // FormData sets its own multipart boundary header
+      ...(options?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       ...options?.headers,
     },
   });
@@ -165,7 +168,16 @@ export const userApi = makeApi<User>("/user");
 export const subscriptionApi = makeApi<Subscription>("/subscription");
 export const profileApi = makeApi<Profile>("/profile");
 export const genreApi = makeApi<Genre>("/genre");
-export const contentApi = makeApi<Content>("/content");
+export const contentApi = {
+  ...makeApi<Content>("/content"),
+
+  // multipart upload: poster image goes in the "poster" field
+  createWithPoster: (form: FormData): Promise<Content> =>
+      request<Content>("/content", { method: "POST", body: form }),
+
+  updateWithPoster: (id: string, form: FormData): Promise<Content> =>
+      request<Content>(`/content/${id}`, { method: "PUT", body: form }),
+};
 export const seasonApi = makeApi<Season>("/season");
 export const episodeApi = makeApi<Episode>("/episode")
 export const watchlistApi = makeApi<WatchList>("/watchlist")

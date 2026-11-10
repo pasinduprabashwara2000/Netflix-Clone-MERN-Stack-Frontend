@@ -1,12 +1,19 @@
 import { ui } from "../../lib/ui";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { contentApi, genreApi } from "../../services/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import type { Content, Genre } from "../../services/api";
 import { useAlert } from "../../alerts/context";
+import { resolveImageUrl } from "../../lib/media";
+
+const MAX_POSTER_BYTES = 2 * 1024 * 1024;
 
 function ContentManagement() {
     const { success, error, warning, confirm } = useAlert();
     const [contents, setContents] = useState<Content[]>([]);
+    const pager = usePagination(contents);
     const [genres, setGenres] = useState<Genre[]>([]);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -15,7 +22,9 @@ function ContentManagement() {
     const [maturityRating, setMaturityRating] = useState('');
     const [duration, setDuration] = useState('');
     const [genreId, setGenreId] = useState('');
-    const [posterUrl, setPosterUrl] = useState('');
+    const [posterFile, setPosterFile] = useState<File | null>(null);
+    const [posterPreview, setPosterPreview] = useState('');
+    const posterInput = useRef<HTMLInputElement>(null);
     const [bannerUrl, setBannerUrl] = useState('');
     const [trailer, setTrailer] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
@@ -44,7 +53,35 @@ function ContentManagement() {
         loadGenres();
     }, []);
 
+    const revokePreview = (url: string) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    };
+
+    const handlePosterChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            warning('Poster must be an image file');
+            e.target.value = '';
+            return;
+        }
+        if (file.size > MAX_POSTER_BYTES) {
+            warning('Poster must be 2 MB or smaller');
+            e.target.value = '';
+            return;
+        }
+
+        revokePreview(posterPreview);
+        setPosterFile(file);
+        setPosterPreview(URL.createObjectURL(file));
+    };
+
     const handleClear = () => {
+        revokePreview(posterPreview);
+        setPosterFile(null);
+        setPosterPreview('');
+        if (posterInput.current) posterInput.current.value = '';
         setSelectedId(null);
         setTitle('');
         setDescription('');
@@ -53,7 +90,6 @@ function ContentManagement() {
         setMaturityRating('');
         setDuration('');
         setGenreId('');
-        setPosterUrl('');
         setBannerUrl('');
         setTrailer('');
         setVideoUrl('');
@@ -63,23 +99,27 @@ function ContentManagement() {
 
     const handleSave = async () => {
         try {
-            if (!title || !description || !type || !releaseYear || !maturityRating || !duration || !posterUrl || !bannerUrl || !trailer || !videoUrl || !avgRating) {
+            if (!title || !description || !type || !releaseYear || !maturityRating || !duration || (!selectedId && !posterFile) || !bannerUrl || !trailer || !videoUrl || !avgRating) {
                 warning('All Fields Required');
                 return;
             }
 
-            const data = {
-                title, description, type, maturityRating, posterUrl, bannerUrl, trailer, videoUrl, isFeatured,
-                releaseYear: Number(releaseYear),
+            const form = new FormData();
+            const fields: Record<string, string> = {
+                title, description, type, maturityRating, bannerUrl, trailer, videoUrl,
+                releaseYear: String(Number(releaseYear)),
                 durationMins: duration,
-                avgRating: Number(avgRating),
-                ...(genreId && { genreId }),
+                avgRating: String(Number(avgRating)),
+                isFeatured: String(isFeatured),
             };
+            Object.entries(fields).forEach(([key, value]) => form.append(key, value));
+            if (genreId) form.append('genreId', genreId);
+            if (posterFile) form.append('poster', posterFile);
 
             if (selectedId) {
-                await contentApi.update(selectedId, data);
+                await contentApi.updateWithPoster(selectedId, form);
             } else {
-                await contentApi.create(data);
+                await contentApi.createWithPoster(form);
             }
 
             success(selectedId ? "Content Updated" : "Content Created");
@@ -99,7 +139,10 @@ function ContentManagement() {
         setMaturityRating(item.maturityRating);
         setDuration(item.durationMins);
         setGenreId(item.genreId ?? '');
-        setPosterUrl(item.posterUrl);
+        revokePreview(posterPreview);
+        setPosterFile(null);
+        setPosterPreview(resolveImageUrl(item.posterUrl));
+        if (posterInput.current) posterInput.current.value = '';
         setBannerUrl(item.bannerUrl);
         setTrailer(item.trailer);
         setVideoUrl(item.videoUrl);
@@ -167,8 +210,24 @@ function ContentManagement() {
                     </div>
 
                     <div className={ui.field}>
-                        <label className={ui.label}>Poster URL : </label>
-                        <input className={ui.input} type="text" value={posterUrl} placeholder="Enter Content Poster URL" onChange={(e) => setPosterUrl(e.target.value)} />
+                        <label className={ui.label}>Poster Image : </label>
+                        <input
+                            ref={posterInput}
+                            className={ui.input}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                            onChange={handlePosterChange}
+                        />
+                        {posterPreview && (
+                            <img
+                                src={posterPreview}
+                                alt="Poster preview"
+                                className="mt-2 h-40 w-auto rounded border-2 border-zinc-800 object-cover"
+                            />
+                        )}
+                        <p className="mt-1 text-xs text-zinc-500">
+                            JPEG, PNG, WebP, GIF or AVIF, max 2 MB{selectedId ? ' - leave empty to keep the current poster' : ''}
+                        </p>
                     </div>
 
                     <div className={ui.field}>
@@ -226,7 +285,7 @@ function ContentManagement() {
                         {contents.length === 0 && (
                             <tr><td colSpan={8} className={ui.empty}>No contents yet</td></tr>
                         )}
-                        {contents.map((item) => (
+                        {pager.items.map((item) => (
                             <tr key={item._id} className={ui.tr}>
                                 <td className={`${ui.td} font-bold text-zinc-100`}>{item.title}</td>
                                 <td className={ui.td}>{item.type}</td>
@@ -249,6 +308,8 @@ function ContentManagement() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination pager={pager} />
         </div>
     );
 }

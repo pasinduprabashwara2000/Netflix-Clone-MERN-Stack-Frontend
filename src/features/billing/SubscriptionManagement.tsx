@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import { planApi, subscriptionApi, userApi } from "../../services/api";
 import { ui } from "../../lib/ui";
 import type { Plan, Subscription, User } from "../../services/api";
@@ -16,6 +18,7 @@ const dateOnly = (iso: string) => (iso ? iso.slice(0, 10) : "-");
 function SubscriptionManagement() {
   const { success, error } = useAlert();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const pager = usePagination(subscriptions);
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -157,7 +160,7 @@ function SubscriptionManagement() {
                   </td>
                 </tr>
             ) : (
-                subscriptions.map((s) => (
+                pager.items.map((s) => (
                     <tr key={s._id} className={ui.tr}>
                       <td className={`${ui.td} font-semibold`}>
                         {userLabel(s.userId)}
@@ -188,6 +191,8 @@ function SubscriptionManagement() {
             </tbody>
           </table>
         </div>
+
+            <Pagination pager={pager} />
       </div>
   );
 }

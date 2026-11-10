@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/common/Pagination";
 import type { Genre } from "../../services/api";
 import { ui } from "../../lib/ui";
 import { genreApi } from "../../services/api";
@@ -7,6 +9,7 @@ import { useAlert } from "../../alerts/context";
 function GenreManagement() {
     const { success, error, warning, confirm } = useAlert();
     const [genres, setGenres] = useState<Genre[]>([]);
+    const pager = usePagination(genres);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -120,7 +123,7 @@ function GenreManagement() {
                             <td colSpan={3} className={ui.empty}>No genres yet</td>
                         </tr>
                     )}
-                    {genres.map((item) => (
+                    {pager.items.map((item) => (
                         <tr key={item._id} className={ui.tr}>
                             <td className={ui.td}>{item.name}</td>
                             <td className={ui.td}>{item.description}</td>
@@ -135,6 +138,8 @@ function GenreManagement() {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination pager={pager} />
         </div>
     );
 }
