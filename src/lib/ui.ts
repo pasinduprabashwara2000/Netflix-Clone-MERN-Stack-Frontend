@@ -22,7 +22,7 @@ export const ui = {
       'z-10 border-b-2 border-zinc-800 bg-zinc-900 p-4 md:sticky md:top-0 md:h-screen md:border-r-2 md:border-b-0 md:p-6',
 
   sidebarHeader: 'flex items-center justify-between md:block',
-  sidebarTitle: 'text-2xl font-black uppercase tracking-tighter text-lime-400',
+  sidebarTitle: 'text-2xl font-black uppercase tracking-tighter text-brand',
   sidebarBadge:
       'mt-1 inline-block border-2 border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-zinc-400',
 
@@ -33,24 +33,24 @@ export const ui = {
       'shrink-0 border-2 px-4 py-3 text-left text-xs font-black uppercase tracking-widest transition active:translate-x-0.5 active:translate-y-0.5',
 
   sidebarItemActive:
-      'border-black bg-lime-400 text-black shadow-[4px_4px_0_0_#000]',
+      'border-black bg-brand text-white shadow-[4px_4px_0_0_#000]',
 
   sidebarItemInactive:
-      'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-lime-400 hover:text-lime-400',
+      'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-brand hover:text-brand',
 
   // Cards
-  card: 'mt-6 border-2 border-zinc-800 bg-zinc-900 p-5 shadow-[6px_6px_0_0_#a3e635] sm:p-6',
+  card: 'mt-6 border-2 border-zinc-800 bg-zinc-900 p-5 shadow-[6px_6px_0_0_#e50914] sm:p-6',
   cardTitle:
-      'mb-5 inline-block border-2 border-zinc-800 bg-lime-400 px-3 py-1 text-xs font-black uppercase tracking-widest text-black',
+      'mb-5 inline-block border-2 border-zinc-800 bg-brand px-3 py-1 text-xs font-black uppercase tracking-widest text-white',
 
   // Statistics
   statGrid: 'mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3',
   statCard:
-      'border-2 border-zinc-800 bg-zinc-900 p-5 transition-transform duration-150 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#a3e635]',
+      'border-2 border-zinc-800 bg-zinc-900 p-5 transition-transform duration-150 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#e50914]',
   statLabel: 'text-xs font-black uppercase tracking-widest text-zinc-400',
-  statValue: 'mt-4 text-4xl font-black tracking-tighter text-lime-400',
+  statValue: 'mt-4 text-4xl font-black tracking-tighter text-brand',
   statIcon:
-      'flex size-11 items-center justify-center border-2 border-black bg-lime-400 text-black',
+      'flex size-11 items-center justify-center border-2 border-black bg-brand text-white',
 
   // Form and Grid
   grid: 'grid gap-5 sm:grid-cols-2',
@@ -58,31 +58,31 @@ export const ui = {
   label: 'text-xs font-black uppercase tracking-widest text-zinc-300',
 
   input:
-      'w-full border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-lime-400 focus:outline-none focus:ring-0',
+      'w-full border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-brand focus:outline-none focus:ring-0',
 
   select:
-      'w-full border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 transition focus:border-lime-400 focus:outline-none focus:ring-0',
+      'w-full border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 transition focus:border-brand focus:outline-none focus:ring-0',
 
   textarea:
-      'w-full min-h-28 border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-lime-400 focus:outline-none focus:ring-0',
+      'w-full min-h-28 border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-brand focus:outline-none focus:ring-0',
 
   check:
-      'flex cursor-pointer items-center gap-3 self-start border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-bold text-zinc-200 transition hover:border-lime-400 has-[:checked]:border-lime-400 has-[:checked]:bg-lime-400 has-[:checked]:text-black',
+      'flex cursor-pointer items-center gap-3 self-start border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-sm font-bold text-zinc-200 transition hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-brand has-[:checked]:text-white',
 
   checkbox:
-      'size-4 appearance-none border-2 border-zinc-500 bg-zinc-950 checked:border-lime-400 checked:bg-lime-400',
+      'size-4 appearance-none border-2 border-zinc-500 bg-zinc-950 checked:border-brand checked:bg-brand',
 
   // Buttons
   actions: 'mt-6 flex flex-wrap gap-3 border-t-2 border-zinc-800 pt-5',
 
   btn:
-      'border-2 border-zinc-700 bg-zinc-950 px-5 py-2.5 text-sm font-black uppercase tracking-wide text-zinc-200 transition hover:border-lime-400 hover:text-lime-400 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400',
+      'border-2 border-zinc-700 bg-zinc-950 px-5 py-2.5 text-sm font-black uppercase tracking-wide text-zinc-200 transition hover:border-brand hover:text-brand active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
 
   btnPrimary:
-      'border-2 border-black bg-lime-400 px-5 py-2.5 text-sm font-black uppercase tracking-wide text-black shadow-[4px_4px_0_0_#000] transition hover:bg-lime-300 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400',
+      'border-2 border-black bg-brand px-5 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-[4px_4px_0_0_#000] transition hover:bg-brand-600 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
 
   btnSm:
-      'border-2 border-zinc-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-lime-400 transition hover:border-lime-400 hover:bg-lime-400 hover:text-black active:translate-y-0.5',
+      'border-2 border-zinc-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-brand transition hover:border-brand hover:bg-brand hover:text-white active:translate-y-0.5',
 
   btnDanger:
       'border-2 border-zinc-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-red-400 transition hover:border-red-500 hover:bg-red-500 hover:text-white active:translate-y-0.5',
@@ -90,7 +90,7 @@ export const ui = {
   // Tables
   tableWrap: 'mt-6 overflow-x-auto border-2 border-zinc-800 bg-zinc-900',
   table: 'w-full min-w-[640px] text-left text-sm',
-  th: 'border-b-2 border-zinc-800 bg-zinc-800 px-5 py-4 text-xs font-black uppercase tracking-widest text-lime-400',
+  th: 'border-b-2 border-zinc-800 bg-zinc-800 px-5 py-4 text-xs font-black uppercase tracking-widest text-brand',
   tr: 'transition-colors hover:bg-zinc-800/70 [&:not(:last-child)>td]:border-b-2 [&:not(:last-child)>td]:border-zinc-800',
   td: 'px-5 py-4 align-middle font-medium text-zinc-300',
   empty:
@@ -106,7 +106,7 @@ export const ui = {
   // Search
   searchWrapper: 'relative mt-6',
   searchInput:
-      'w-full border-2 border-zinc-700 bg-zinc-950 py-3 pl-11 pr-4 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-lime-400 focus:outline-none focus:ring-0',
+      'w-full border-2 border-zinc-700 bg-zinc-950 py-3 pl-11 pr-4 text-sm font-medium text-zinc-100 placeholder:text-zinc-500 transition focus:border-brand focus:outline-none focus:ring-0',
 
   // Details
   detailsGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3',

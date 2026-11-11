@@ -68,7 +68,7 @@ function ToastItem({ toast, close }: { toast: Toast; close: (id: number) => void
                 <button
                     onClick={() => close(toast.id)}
                     aria-label="Dismiss"
-                    className="shrink-0 border-2 border-zinc-700 px-2 py-0.5 text-xs font-black text-zinc-400 transition hover:border-lime-400 hover:text-lime-400 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400"
+                    className="shrink-0 border-2 border-zinc-700 px-2 py-0.5 text-xs font-black text-zinc-400 transition hover:border-brand hover:text-brand active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                     ✕
                 </button>
@@ -97,7 +97,7 @@ function ConfirmDialog({ pending, answer }: { pending: PendingConfirm; answer: (
             <div
                 role="alertdialog"
                 aria-modal="true"
-                className="w-full max-w-sm border-2 border-zinc-800 bg-zinc-900 p-6 shadow-[6px_6px_0_0_#a3e635]"
+                className="w-full max-w-sm border-2 border-zinc-800 bg-zinc-900 p-6 shadow-[6px_6px_0_0_#e50914]"
             >
                 <h2 className={ui.cardTitle}>{pending.title ?? 'Are you sure?'}</h2>
                 <p className="mb-6 text-sm font-medium text-zinc-400">{pending.message}</p>

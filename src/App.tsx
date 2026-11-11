@@ -34,7 +34,7 @@ function App() {
             <aside className="z-10 border-b-2 border-zinc-800 bg-zinc-900 p-4 md:sticky md:top-0 md:h-screen md:border-r-2 md:border-b-0 md:p-6">
                 <div className="flex items-center justify-between md:block">
                     <div>
-                        <h2 className="text-2xl font-black uppercase tracking-tighter text-lime-400">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-brand">
                             Hotflix
                         </h2>
                         <span className="mt-1 inline-block border-2 border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">
@@ -55,8 +55,8 @@ function App() {
                                 aria-current={isActive ? 'page' : undefined}
                                 className={`shrink-0 border-2 px-4 py-3 text-left text-xs font-black uppercase tracking-widest transition active:translate-x-0.5 active:translate-y-0.5 ${
                                     isActive
-                                        ? 'border-black bg-lime-400 text-black shadow-[4px_4px_0_0_#000]'
-                                        : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-lime-400 hover:text-lime-400'
+                                        ? 'border-black bg-brand text-white shadow-[4px_4px_0_0_#000]'
+                                        : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-brand hover:text-brand'
                                 }`}
                             >
                                 {item.label}

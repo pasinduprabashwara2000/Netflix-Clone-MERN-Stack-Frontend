@@ -30,7 +30,7 @@ function Pagination<T>({ pager }: { pager: Pager<T> }) {
                             aria-current={p === page ? 'page' : undefined}
                             className={
                                 p === page
-                                    ? 'border-2 border-black bg-lime-400 px-3 py-2 text-xs font-black text-black'
+                                    ? 'border-2 border-black bg-brand px-3 py-2 text-xs font-black text-white'
                                     : ui.btnSm
                             }
                         >

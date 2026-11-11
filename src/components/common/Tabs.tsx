@@ -32,10 +32,10 @@ function Tabs({ tabs, initial }: TabsProps) {
                             type="button"
                             aria-selected={selected}
                             onClick={() => setActive(t.id)}
-                            className={`flex shrink-0 items-center gap-2 border-2 px-4 py-3 text-xs font-black uppercase tracking-widest whitespace-nowrap transition active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-400 ${
+                            className={`flex shrink-0 items-center gap-2 border-2 px-4 py-3 text-xs font-black uppercase tracking-widest whitespace-nowrap transition active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
                                 selected
-                                    ? 'border-black bg-lime-400 text-black shadow-[4px_4px_0_0_#000]'
-                                    : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-lime-400 hover:text-lime-400'
+                                    ? 'border-black bg-brand text-white shadow-[4px_4px_0_0_#000]'
+                                    : 'border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-brand hover:text-brand'
                             }`}
                         >
                             {t.icon}
