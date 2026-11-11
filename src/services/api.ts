@@ -67,6 +67,31 @@ export interface Content {
   genreId?: string;
 }
 
+// CONTENT DETAILS (GET /content/:id/details)
+export interface EpisodeItem {
+  _id: string;
+  episodeNumber: number;
+  title: string;
+  description: string;
+  durationMins: number;
+  videoUrl: string;
+  thumbnailUrl: string;
+}
+
+export interface SeasonWithEpisodes {
+  _id: string;
+  seasonNumber: number;
+  title: string;
+  releaseYear: number;
+  episodes: EpisodeItem[];
+}
+
+export interface ContentDetails extends Content {
+  genre: { _id: string; name: string } | null;
+  seasons: SeasonWithEpisodes[];
+  similar: Content[];
+}
+
 // SEASON
 export interface Season {
   _id: string;
@@ -171,12 +196,16 @@ export const genreApi = makeApi<Genre>("/genre");
 export const contentApi = {
   ...makeApi<Content>("/content"),
 
-  // multipart upload: poster image goes in the "poster" field
-  createWithPoster: (form: FormData): Promise<Content> =>
+  // multipart upload: images go in the "poster" and "banner" fields
+  createWithImages: (form: FormData): Promise<Content> =>
       request<Content>("/content", { method: "POST", body: form }),
 
-  updateWithPoster: (id: string, form: FormData): Promise<Content> =>
+  updateWithImages: (id: string, form: FormData): Promise<Content> =>
       request<Content>(`/content/${id}`, { method: "PUT", body: form }),
+
+  // title + genre + seasons/episodes + similar titles in one request
+  getDetails: (id: string): Promise<ContentDetails> =>
+      request<ContentDetails>(`/content/${id}/details`),
 };
 export const seasonApi = makeApi<Season>("/season");
 export const episodeApi = makeApi<Episode>("/episode")

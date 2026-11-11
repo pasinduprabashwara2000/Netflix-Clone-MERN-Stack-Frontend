@@ -2,13 +2,10 @@ import { ui } from "../../lib/ui";
 import { usePagination } from "../../hooks/usePagination";
 import Pagination from "../../components/common/Pagination";
 import { contentApi, genreApi } from "../../services/api";
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import type { Content, Genre } from "../../services/api";
 import { useAlert } from "../../alerts/context";
-import { resolveImageUrl } from "../../lib/media";
-
-const MAX_POSTER_BYTES = 2 * 1024 * 1024;
+import ImageUpload from "../../components/common/ImageUpload";
 
 function ContentManagement() {
     const { success, error, warning, confirm } = useAlert();
@@ -23,9 +20,12 @@ function ContentManagement() {
     const [duration, setDuration] = useState('');
     const [genreId, setGenreId] = useState('');
     const [posterFile, setPosterFile] = useState<File | null>(null);
-    const [posterPreview, setPosterPreview] = useState('');
-    const posterInput = useRef<HTMLInputElement>(null);
+    const [bannerFile, setBannerFile] = useState<File | null>(null);
+    // images already saved on the server (shown while editing)
+    const [posterUrl, setPosterUrl] = useState('');
     const [bannerUrl, setBannerUrl] = useState('');
+    // bump to reset both file pickers
+    const [imageFormKey, setImageFormKey] = useState(0);
     const [trailer, setTrailer] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
@@ -53,35 +53,12 @@ function ContentManagement() {
         loadGenres();
     }, []);
 
-    const revokePreview = (url: string) => {
-        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-    };
-
-    const handlePosterChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            warning('Poster must be an image file');
-            e.target.value = '';
-            return;
-        }
-        if (file.size > MAX_POSTER_BYTES) {
-            warning('Poster must be 2 MB or smaller');
-            e.target.value = '';
-            return;
-        }
-
-        revokePreview(posterPreview);
-        setPosterFile(file);
-        setPosterPreview(URL.createObjectURL(file));
-    };
-
     const handleClear = () => {
-        revokePreview(posterPreview);
         setPosterFile(null);
-        setPosterPreview('');
-        if (posterInput.current) posterInput.current.value = '';
+        setBannerFile(null);
+        setPosterUrl('');
+        setBannerUrl('');
+        setImageFormKey((k) => k + 1);
         setSelectedId(null);
         setTitle('');
         setDescription('');
@@ -90,7 +67,6 @@ function ContentManagement() {
         setMaturityRating('');
         setDuration('');
         setGenreId('');
-        setBannerUrl('');
         setTrailer('');
         setVideoUrl('');
         setIsFeatured(false);
@@ -99,14 +75,14 @@ function ContentManagement() {
 
     const handleSave = async () => {
         try {
-            if (!title || !description || !type || !releaseYear || !maturityRating || !duration || (!selectedId && !posterFile) || !bannerUrl || !trailer || !videoUrl || !avgRating) {
+            if (!title || !description || !type || !releaseYear || !maturityRating || !duration || (!selectedId && (!posterFile || !bannerFile)) || !trailer || !videoUrl || !avgRating) {
                 warning('All Fields Required');
                 return;
             }
 
             const form = new FormData();
             const fields: Record<string, string> = {
-                title, description, type, maturityRating, bannerUrl, trailer, videoUrl,
+                title, description, type, maturityRating, trailer, videoUrl,
                 releaseYear: String(Number(releaseYear)),
                 durationMins: duration,
                 avgRating: String(Number(avgRating)),
@@ -115,11 +91,12 @@ function ContentManagement() {
             Object.entries(fields).forEach(([key, value]) => form.append(key, value));
             if (genreId) form.append('genreId', genreId);
             if (posterFile) form.append('poster', posterFile);
+            if (bannerFile) form.append('banner', bannerFile);
 
             if (selectedId) {
-                await contentApi.updateWithPoster(selectedId, form);
+                await contentApi.updateWithImages(selectedId, form);
             } else {
-                await contentApi.createWithPoster(form);
+                await contentApi.createWithImages(form);
             }
 
             success(selectedId ? "Content Updated" : "Content Created");
@@ -139,11 +116,11 @@ function ContentManagement() {
         setMaturityRating(item.maturityRating);
         setDuration(item.durationMins);
         setGenreId(item.genreId ?? '');
-        revokePreview(posterPreview);
         setPosterFile(null);
-        setPosterPreview(resolveImageUrl(item.posterUrl));
-        if (posterInput.current) posterInput.current.value = '';
+        setBannerFile(null);
+        setPosterUrl(item.posterUrl);
         setBannerUrl(item.bannerUrl);
+        setImageFormKey((k) => k + 1);
         setTrailer(item.trailer);
         setVideoUrl(item.videoUrl);
         setIsFeatured(item.isFeatured);
@@ -209,31 +186,25 @@ function ContentManagement() {
                         </select>
                     </div>
 
-                    <div className={ui.field}>
-                        <label className={ui.label}>Poster Image : </label>
-                        <input
-                            ref={posterInput}
-                            className={ui.input}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-                            onChange={handlePosterChange}
-                        />
-                        {posterPreview && (
-                            <img
-                                src={posterPreview}
-                                alt="Poster preview"
-                                className="mt-2 h-40 w-auto rounded border-2 border-zinc-800 object-cover"
-                            />
-                        )}
-                        <p className="mt-1 text-xs text-zinc-500">
-                            JPEG, PNG, WebP, GIF or AVIF, max 2 MB{selectedId ? ' - leave empty to keep the current poster' : ''}
-                        </p>
-                    </div>
+                    <ImageUpload
+                        key={`poster-${imageFormKey}`}
+                        label="Poster Image : "
+                        existingUrl={posterUrl}
+                        onChange={setPosterFile}
+                        onInvalid={warning}
+                        hint={selectedId ? 'leave empty to keep the current poster' : undefined}
+                        previewClassName="h-40"
+                    />
 
-                    <div className={ui.field}>
-                        <label className={ui.label}>Banner URL : </label>
-                        <input className={ui.input} type="text" value={bannerUrl} placeholder="Enter Content Banner URL" onChange={(e) => setBannerUrl(e.target.value)} />
-                    </div>
+                    <ImageUpload
+                        key={`banner-${imageFormKey}`}
+                        label="Banner Image : "
+                        existingUrl={bannerUrl}
+                        onChange={setBannerFile}
+                        onInvalid={warning}
+                        hint={selectedId ? 'leave empty to keep the current banner' : undefined}
+                        previewClassName="h-28"
+                    />
 
                     <div className={ui.field}>
                         <label className={ui.label}>Trailer : </label>

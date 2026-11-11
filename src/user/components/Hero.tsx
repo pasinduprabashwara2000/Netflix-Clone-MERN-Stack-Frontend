@@ -1,5 +1,6 @@
 import type { Content } from '../../services/api'
 import SafeImage from './SafeImage'
+import { titlePath } from '../router'
 
 function Hero({ item }: { item: Content }) {
     return (
@@ -31,7 +32,7 @@ function Hero({ item }: { item: Content }) {
 
                     <p className="mt-4 line-clamp-3 text-sm text-zinc-200 sm:text-base">{item.description}</p>
 
-                    {/* Buttons are visual only in step 1: wired to the details/player pages later */}
+                    {/* Play is wired to the player page in step 3 */}
                     <div className="mt-6 flex flex-wrap gap-3">
                         <button
                             type="button"
@@ -39,12 +40,12 @@ function Hero({ item }: { item: Content }) {
                         >
                             <span aria-hidden="true">▶</span> Play
                         </button>
-                        <button
-                            type="button"
+                        <a
+                            href={titlePath(item._id)}
                             className="flex items-center gap-2 rounded bg-zinc-500/60 px-6 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-zinc-500/40"
                         >
                             <span aria-hidden="true">ⓘ</span> More Info
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
