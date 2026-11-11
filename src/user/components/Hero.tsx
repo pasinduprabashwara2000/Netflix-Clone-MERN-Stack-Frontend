@@ -1,6 +1,6 @@
 import type { Content } from '../../services/api'
 import SafeImage from './SafeImage'
-import { titlePath } from '../router'
+import { titlePath, watchPath } from '../router'
 
 function Hero({ item }: { item: Content }) {
     return (
@@ -34,12 +34,12 @@ function Hero({ item }: { item: Content }) {
 
                     {/* Play is wired to the player page in step 3 */}
                     <div className="mt-6 flex flex-wrap gap-3">
-                        <button
-                            type="button"
+                        <a
+                            href={watchPath(item._id)}
                             className="flex items-center gap-2 rounded bg-white px-6 py-2.5 text-sm font-bold text-black transition hover:bg-white/80"
                         >
                             <span aria-hidden="true">▶</span> Play
-                        </button>
+                        </a>
                         <a
                             href={titlePath(item._id)}
                             className="flex items-center gap-2 rounded bg-zinc-500/60 px-6 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-zinc-500/40"

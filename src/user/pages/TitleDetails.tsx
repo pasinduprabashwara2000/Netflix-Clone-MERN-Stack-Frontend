@@ -3,14 +3,14 @@ import { contentApi } from '../../services/api'
 import type { ContentDetails } from '../../services/api'
 import SafeImage from '../components/SafeImage'
 import ContentRow from '../components/ContentRow'
-import { goHome } from '../router'
+import EpisodeList from '../components/EpisodeList'
+import { goHome, trailerPath, watchPath } from '../router'
 
 function TitleDetails({ id }: { id: string }) {
     const [data, setData] = useState<ContentDetails | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [attempt, setAttempt] = useState(0)
-    const [seasonIndex, setSeasonIndex] = useState(0)
 
     useEffect(() => {
         let cancelled = false
@@ -77,8 +77,7 @@ function TitleDetails({ id }: { id: string }) {
     }
 
     const isSeries = data.type === 'Series'
-    const season = data.seasons[seasonIndex] ?? data.seasons[0]
-    const hasTrailer = /^https?:\/\//i.test(data.trailer)
+    const hasTrailer = data.trailer.trim() !== ''
 
     return (
         <>
@@ -123,18 +122,15 @@ function TitleDetails({ id }: { id: string }) {
                         </div>
 
                         <div className="mt-6 flex flex-wrap gap-3">
-                            {/* Play is wired to the player in step 3 */}
-                            <button
-                                type="button"
+                            <a
+                                href={watchPath(data._id)}
                                 className="flex items-center gap-2 rounded bg-white px-6 py-2.5 text-sm font-bold text-black transition hover:bg-white/80"
                             >
                                 <span aria-hidden="true">▶</span> Play
-                            </button>
+                            </a>
                             {hasTrailer && (
                                 <a
-                                    href={data.trailer}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                    href={trailerPath(data._id)}
                                     className="flex items-center gap-2 rounded bg-zinc-500/60 px-6 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-zinc-500/40"
                                 >
                                     <span aria-hidden="true">🎬</span> Watch Trailer
@@ -186,75 +182,7 @@ function TitleDetails({ id }: { id: string }) {
                     <section className="mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-12">
                         <h2 className="text-xl font-bold">Episodes</h2>
 
-                        {data.seasons.length === 0 ? (
-                            <p className="mt-4 text-sm text-muted">No episodes have been added yet.</p>
-                        ) : (
-                            <>
-                                {data.seasons.length > 1 && (
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {data.seasons.map((s, i) => (
-                                            <button
-                                                key={s._id}
-                                                type="button"
-                                                onClick={() => setSeasonIndex(i)}
-                                                aria-pressed={i === seasonIndex}
-                                                className={`rounded px-4 py-1.5 text-sm font-semibold transition ${
-                                                    i === seasonIndex
-                                                        ? 'bg-white text-black'
-                                                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-                                                }`}
-                                            >
-                                                Season {s.seasonNumber}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {season && (
-                                    <>
-                                        <p className="mt-4 text-sm text-muted">
-                                            {season.title} · {season.releaseYear} · {season.episodes.length}{' '}
-                                            {season.episodes.length === 1 ? 'episode' : 'episodes'}
-                                        </p>
-
-                                        {season.episodes.length === 0 ? (
-                                            <p className="mt-4 text-sm text-muted">No episodes in this season yet.</p>
-                                        ) : (
-                                            <ul className="mt-3 flex flex-col divide-y divide-line">
-                                                {season.episodes.map((ep) => (
-                                                    <li
-                                                        key={ep._id}
-                                                        className="flex gap-3 rounded-md p-3 transition hover:bg-white/5 sm:gap-4"
-                                                    >
-                                                        <span className="w-6 shrink-0 self-center text-center text-lg font-bold text-muted sm:w-8 sm:text-2xl">
-                                                            {ep.episodeNumber}
-                                                        </span>
-                                                        <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded bg-raised sm:w-44">
-                                                            <SafeImage
-                                                                src={ep.thumbnailUrl}
-                                                                alt={ep.title}
-                                                                className="size-full object-cover"
-                                                            />
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-baseline justify-between gap-3">
-                                                                <h3 className="truncate font-semibold">{ep.title}</h3>
-                                                                <span className="shrink-0 text-xs text-muted">
-                                                                    {ep.durationMins} min
-                                                                </span>
-                                                            </div>
-                                                            <p className="mt-1 line-clamp-2 text-sm text-muted">
-                                                                {ep.description}
-                                                            </p>
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </>
-                                )}
-                            </>
-                        )}
+                        <EpisodeList contentId={data._id} seasons={data.seasons} />
                     </section>
                 )}
 
