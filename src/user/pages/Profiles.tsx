@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
+import { API_URL } from '../../config'
 import { useAlert } from '../../alerts/context.ts'
 import { authHeader, getToken, logout, saveProfile } from '../auth'
 import type { ActiveProfile } from '../auth'
 import { replaceWith } from '../router'
 
-const API = 'http://localhost:5000/api/profile/mine'
+const API = `${API_URL}/profile/mine`
 const MAX_PROFILES = 5
 
 const inputClass = 'h-12 w-full rounded border border-zinc-700 bg-zinc-800/80 px-4 text-sm text-white placeholder-zinc-500 outline-none transition focus:border-white'

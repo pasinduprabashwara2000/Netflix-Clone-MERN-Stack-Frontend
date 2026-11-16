@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
+import { API_URL } from '../../config'
 import { useAlert } from '../../alerts/context.ts'
 import { saveToken } from '../auth'
 import { replaceWith, profilesPath } from '../router'
@@ -29,7 +30,7 @@ function Login() {
 
         try {
             setLoading(true)
-            const res = await axios.post('http://localhost:5000/api/auth/login', { email, password })
+            const res = await axios.post(`${API_URL}/auth/login`, { email, password })
             saveToken(res.data.token)
             success('Login Successfully')
             // replace (not push) so Back doesn't return to the login form

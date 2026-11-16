@@ -1,9 +1,10 @@
 import axios from 'axios'
+import { API_URL } from '../config'
 import { getToken, logout } from './auth'
 import type { ActiveProfile } from './auth'
 import type { Content } from '../services/api'
 
-const http = axios.create({ baseURL: 'http://localhost:5000/api' })
+const http = axios.create({ baseURL: API_URL })
 
 // attach the token to every request
 http.interceptors.request.use((config) => {

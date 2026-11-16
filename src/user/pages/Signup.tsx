@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
+import { API_URL } from '../../config'
 import { useAlert } from '../../alerts/context.ts'
 
 const inputClass = 'h-12 w-full rounded border border-zinc-700 bg-zinc-800/80 px-4 text-sm text-white placeholder-zinc-500 outline-none transition focus:border-white'
@@ -47,7 +48,7 @@ function Signup() {
 
         try {
             setLoading(true)
-            await axios.post('http://localhost:5000/api/auth/register', {
+            await axios.post(`${API_URL}/auth/register`, {
                 name: name.trim(),
                 email: email.trim(),
                 password,
