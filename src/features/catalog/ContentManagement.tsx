@@ -1,36 +1,35 @@
 import { ui } from "../../lib/ui";
 import { usePagination } from "../../hooks/usePagination";
 import Pagination from "../../components/common/Pagination";
+import ImageUrlInput from "../../components/common/ImageUrlInput";
 import { contentApi, genreApi } from "../../services/api";
 import { useEffect, useState } from "react";
+import type { ChangeEvent } from "react";
 import type { Content, Genre } from "../../services/api";
 import { useAlert } from "../../alerts/context";
-import ImageUpload from "../../components/common/ImageUpload";
+
+const EMPTY = {
+    title: '', description: '', type: '', releaseYear: '', maturityRating: '', durationMins: '',
+    genreId: '', posterUrl: '', bannerUrl: '', trailer: '', videoUrl: '', avgRating: '', isFeatured: false,
+};
+type Form = typeof EMPTY;
+type TextKey = Exclude<keyof Form, 'isFeatured'>;
+// every text field except the optional genre must be filled in
+const REQUIRED = (Object.keys(EMPTY) as TextKey[]).filter((key) => key !== 'genreId');
 
 function ContentManagement() {
     const { success, error, warning, confirm } = useAlert();
     const [contents, setContents] = useState<Content[]>([]);
-    const pager = usePagination(contents);
     const [genres, setGenres] = useState<Genre[]>([]);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [type, setType] = useState('');
-    const [releaseYear, setReleaseYear] = useState('');
-    const [maturityRating, setMaturityRating] = useState('');
-    const [duration, setDuration] = useState('');
-    const [genreId, setGenreId] = useState('');
-    const [posterFile, setPosterFile] = useState<File | null>(null);
-    const [bannerFile, setBannerFile] = useState<File | null>(null);
-    // images already saved on the server (shown while editing)
-    const [posterUrl, setPosterUrl] = useState('');
-    const [bannerUrl, setBannerUrl] = useState('');
-    // bump to reset both file pickers
-    const [imageFormKey, setImageFormKey] = useState(0);
-    const [trailer, setTrailer] = useState('');
-    const [videoUrl, setVideoUrl] = useState('');
-    const [isFeatured, setIsFeatured] = useState(false);
-    const [avgRating, setAvgRating] = useState('');
+    const [form, setForm] = useState<Form>(EMPTY);
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const pager = usePagination(contents);
+
+    const setField = (key: TextKey, value: string) => setForm((f) => ({ ...f, [key]: value }));
+    const bind = (key: TextKey) => ({
+        value: form[key],
+        onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setField(key, e.target.value),
+    });
 
     const loadContents = async () => {
         try {
@@ -40,63 +39,30 @@ function ContentManagement() {
         }
     };
 
-    const loadGenres = async () => {
-        try {
-            setGenres(await genreApi.getAll());
-        } catch (err) {
-            error((err as Error).message);
-        }
-    };
-
     useEffect(() => {
         loadContents();
-        loadGenres();
+        genreApi.getAll().then(setGenres).catch((err: Error) => error(err.message));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleClear = () => {
-        setPosterFile(null);
-        setBannerFile(null);
-        setPosterUrl('');
-        setBannerUrl('');
-        setImageFormKey((k) => k + 1);
         setSelectedId(null);
-        setTitle('');
-        setDescription('');
-        setType('');
-        setReleaseYear('');
-        setMaturityRating('');
-        setDuration('');
-        setGenreId('');
-        setTrailer('');
-        setVideoUrl('');
-        setIsFeatured(false);
-        setAvgRating('');
+        setForm(EMPTY);
     };
 
     const handleSave = async () => {
-        try {
-            if (!title || !description || !type || !releaseYear || !maturityRating || !duration || (!selectedId && (!posterFile || !bannerFile)) || !trailer || !videoUrl || !avgRating) {
-                warning('All Fields Required');
-                return;
-            }
+        if (REQUIRED.some((key) => !form[key])) {
+            warning('All Fields Required');
+            return;
+        }
 
-            const form = new FormData();
-            const fields: Record<string, string> = {
-                title, description, type, maturityRating, trailer, videoUrl,
-                releaseYear: String(Number(releaseYear)),
-                durationMins: duration,
-                avgRating: String(Number(avgRating)),
-                isFeatured: String(isFeatured),
-            };
-            Object.entries(fields).forEach(([key, value]) => form.append(key, value));
-            if (genreId) form.append('genreId', genreId);
-            if (posterFile) form.append('poster', posterFile);
-            if (bannerFile) form.append('banner', bannerFile);
+        try {
+            const payload = { ...form, releaseYear: Number(form.releaseYear), avgRating: Number(form.avgRating) };
 
             if (selectedId) {
-                await contentApi.updateWithImages(selectedId, form);
+                await contentApi.update(selectedId, payload);
             } else {
-                await contentApi.createWithImages(form);
+                await contentApi.create(payload);
             }
 
             success(selectedId ? "Content Updated" : "Content Created");
@@ -109,22 +75,13 @@ function ContentManagement() {
 
     const editContent = (item: Content) => {
         setSelectedId(item._id);
-        setTitle(item.title);
-        setDescription(item.description);
-        setType(item.type);
-        setReleaseYear(String(item.releaseYear));
-        setMaturityRating(item.maturityRating);
-        setDuration(item.durationMins);
-        setGenreId(item.genreId ?? '');
-        setPosterFile(null);
-        setBannerFile(null);
-        setPosterUrl(item.posterUrl);
-        setBannerUrl(item.bannerUrl);
-        setImageFormKey((k) => k + 1);
-        setTrailer(item.trailer);
-        setVideoUrl(item.videoUrl);
-        setIsFeatured(item.isFeatured);
-        setAvgRating(String(item.avgRating));
+        setForm({
+            ...EMPTY,
+            ...item,
+            releaseYear: String(item.releaseYear),
+            avgRating: String(item.avgRating),
+            genreId: item.genreId ?? '',
+        });
     };
 
     const deleteContent = async (id: string) => {
@@ -140,6 +97,15 @@ function ContentManagement() {
         }
     };
 
+    // one labelled text input per field
+    const field = (key: TextKey, label: string, type = 'text') => (
+        <div className={ui.field}>
+            <label className={ui.label}>{label} : </label>
+            <input className={ui.input} type={type} step={key === 'avgRating' ? '0.1' : undefined}
+                   placeholder={`Enter Content ${label}`} {...bind(key)} />
+        </div>
+    );
+
     return (
         <div className={ui.page}>
             <h1 className={ui.title}>Manage Content</h1>
@@ -148,82 +114,34 @@ function ContentManagement() {
             <div className={ui.card}>
                 <h2 className={ui.cardTitle}>{selectedId ? 'Edit Content' : 'New Content'}</h2>
                 <div className={ui.grid}>
-                    <div className={ui.field}>
-                        <label className={ui.label}>Title : </label>
-                        <input className={ui.input} value={title} placeholder="Enter Content Title" onChange={(e) => setTitle(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Description : </label>
-                        <input className={ui.input} type="text" value={description} placeholder="Enter Content Description" onChange={(e) => setDescription(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Type : </label>
-                        <input className={ui.input} value={type} placeholder="Enter Content Type" onChange={(e) => setType(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Release Year : </label>
-                        <input className={ui.input} type="number" value={releaseYear} placeholder="Enter Content Release Year" onChange={(e) => setReleaseYear(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Maturity Rating : </label>
-                        <input className={ui.input} type="text" value={maturityRating} placeholder="Enter Content Maturity Rating" onChange={(e) => setMaturityRating(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Duration : </label>
-                        <input className={ui.input} type="text" value={duration} placeholder="Enter Content Duration" onChange={(e) => setDuration(e.target.value)} />
-                    </div>
+                    {field('title', 'Title')}
+                    {field('description', 'Description')}
+                    {field('type', 'Type')}
+                    {field('releaseYear', 'Release Year', 'number')}
+                    {field('maturityRating', 'Maturity Rating')}
+                    {field('durationMins', 'Duration')}
 
                     <div className={ui.field}>
                         <label className={ui.label}>Genre : </label>
-                        <select className={ui.select} value={genreId} onChange={(e) => setGenreId(e.target.value)}>
+                        <select className={ui.select} {...bind('genreId')}>
                             <option value="">Select Genre</option>
                             {genres.map((g) => <option key={g._id} value={g._id}>{g.name}</option>)}
                         </select>
                     </div>
 
-                    <ImageUpload
-                        key={`poster-${imageFormKey}`}
-                        label="Poster Image : "
-                        existingUrl={posterUrl}
-                        onChange={setPosterFile}
-                        onInvalid={warning}
-                        hint={selectedId ? 'leave empty to keep the current poster' : undefined}
-                        previewClassName="h-40"
-                    />
+                    <ImageUrlInput label="Poster Image URL : " value={form.posterUrl}
+                                   onChange={(v) => setField('posterUrl', v)} previewClassName="h-40" />
+                    <ImageUrlInput label="Banner Image URL : " value={form.bannerUrl}
+                                   onChange={(v) => setField('bannerUrl', v)} previewClassName="h-28" />
 
-                    <ImageUpload
-                        key={`banner-${imageFormKey}`}
-                        label="Banner Image : "
-                        existingUrl={bannerUrl}
-                        onChange={setBannerFile}
-                        onInvalid={warning}
-                        hint={selectedId ? 'leave empty to keep the current banner' : undefined}
-                        previewClassName="h-28"
-                    />
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Trailer : </label>
-                        <input className={ui.input} value={trailer} placeholder="Enter Content Trailer" onChange={(e) => setTrailer(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Video URL : </label>
-                        <input className={ui.input} value={videoUrl} placeholder="Enter Content Video URL" onChange={(e) => setVideoUrl(e.target.value)} />
-                    </div>
-
-                    <div className={ui.field}>
-                        <label className={ui.label}>Average Rating : </label>
-                        <input className={ui.input} type="number" step="0.1" value={avgRating} placeholder="Enter Content Average Rating" onChange={(e) => setAvgRating(e.target.value)} />
-                    </div>
+                    {field('trailer', 'Trailer')}
+                    {field('videoUrl', 'Video URL')}
+                    {field('avgRating', 'Average Rating', 'number')}
 
                     <div className={ui.field}>
                         <label className={ui.check}>
-                            <input type="checkbox" className={ui.checkbox} checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
+                            <input type="checkbox" className={ui.checkbox} checked={form.isFeatured}
+                                   onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} />
                             Is Featured
                         </label>
                     </div>
@@ -254,7 +172,7 @@ function ContentManagement() {
                     </thead>
                     <tbody>
                         {contents.length === 0 && (
-                            <tr><td colSpan={8} className={ui.empty}>No contents yet</td></tr>
+                            <tr><td colSpan={7} className={ui.empty}>No contents yet</td></tr>
                         )}
                         {pager.items.map((item) => (
                             <tr key={item._id} className={ui.tr}>

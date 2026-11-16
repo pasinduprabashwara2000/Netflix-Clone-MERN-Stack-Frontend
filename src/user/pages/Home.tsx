@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { contentApi } from '../../services/api'
 import type { Content } from '../../services/api'
+import { getProfile } from '../auth'
+import { getRecommendations } from '../accountApi'
 import Hero from '../components/Hero'
 import ContentRow from '../components/ContentRow'
 import type { Section } from '../components/Navbar'
@@ -9,6 +11,7 @@ function Home({ section }: { section: Section }) {
     const [contents, setContents] = useState<Content[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [picks, setPicks] = useState<Content[]>([])
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -26,6 +29,26 @@ function Home({ section }: { section: Section }) {
         void load()
     }, [load])
 
+    // AI picks are optional: if the request fails the row is simply not shown
+    useEffect(() => {
+        const profile = getProfile()
+        if (!profile) return
+
+        let cancelled = false
+
+        getRecommendations(profile._id)
+            .then((items) => {
+                if (!cancelled) setPicks(items)
+            })
+            .catch(() => {
+                if (!cancelled) setPicks([])
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [])
+
     const visible = useMemo(
         () => (section === 'all' ? contents : contents.filter((c) => c.type === section)),
         [contents, section],
@@ -35,6 +58,11 @@ function Home({ section }: { section: Section }) {
         const pool = visible.filter((c) => c.isFeatured)
         return [...(pool.length ? pool : visible)].sort((a, b) => b.avgRating - a.avgRating)[0]
     }, [visible])
+
+    const visiblePicks = useMemo(
+        () => (section === 'all' ? picks : picks.filter((c) => c.type === section)),
+        [picks, section],
+    )
 
     const topRated = useMemo(
         () => [...visible].sort((a, b) => b.avgRating - a.avgRating).slice(0, 12),
@@ -84,6 +112,7 @@ function Home({ section }: { section: Section }) {
             <Hero item={hero} />
 
             <div className="relative z-10 -mt-16 flex flex-col gap-8 pb-16 sm:-mt-24">
+                <ContentRow title="Picked for you" items={visiblePicks} />
                 <ContentRow title="Top Rated" items={topRated} />
                 <ContentRow title="New Releases" items={newest} />
                 {section === 'all' && <ContentRow title="Movies" items={movies} />}

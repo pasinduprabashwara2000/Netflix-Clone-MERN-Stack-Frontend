@@ -7,7 +7,7 @@ import type { Plan } from '../../services/api'
 import { useAlert } from '../../alerts/context'
 
 function PlanManagement() {
-  const { success, error, warning, confirm } = useAlert()
+  const { success, error, warning } = useAlert()
   const [plans, setPlans] = useState<Plan[]>([])
   const pager = usePagination(plans);
   const [name, setName] = useState('')

@@ -1,5 +1,4 @@
 const API_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
-export const API_ORIGIN = API_URL.replace(/\/api\/?$/, "");
 
 // PLAN
 export interface Plan {
@@ -109,7 +108,7 @@ export interface Episode {
     description : string;
     durationMins : number;
     videoUrl : string;
-    thumbNailUrl : string;
+    thumbnailUrl : string;
 }
 
 //WATCHLIST
@@ -128,8 +127,7 @@ async function request<T>(
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
-      // FormData sets its own multipart boundary header
-      ...(options?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+      "Content-Type": "application/json",
       ...options?.headers,
     },
   });
@@ -196,17 +194,14 @@ export const genreApi = makeApi<Genre>("/genre");
 export const contentApi = {
   ...makeApi<Content>("/content"),
 
-  // multipart upload: images go in the "poster" and "banner" fields
-  createWithImages: (form: FormData): Promise<Content> =>
-      request<Content>("/content", { method: "POST", body: form }),
-
-  updateWithImages: (id: string, form: FormData): Promise<Content> =>
-      request<Content>(`/content/${id}`, { method: "PUT", body: form }),
+  // server-side title/description search
+  search: (text: string): Promise<Content[]> =>
+      request<Content[]>(`/content?search=${encodeURIComponent(text)}`),
 
   // title + genre + seasons/episodes + similar titles in one request
   getDetails: (id: string): Promise<ContentDetails> =>
       request<ContentDetails>(`/content/${id}/details`),
 };
 export const seasonApi = makeApi<Season>("/season");
-export const episodeApi = makeApi<Episode>("/episode")
+export const episodeApi = makeApi<Episode>("/episode");
 export const watchlistApi = makeApi<WatchList>("/watchlist")

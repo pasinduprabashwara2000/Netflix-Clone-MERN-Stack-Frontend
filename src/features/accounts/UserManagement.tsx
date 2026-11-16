@@ -7,7 +7,7 @@ import type { User } from '../../services/api'
 import { useAlert } from '../../alerts/context'
 
 function UserManagement() {
-  const { success, error, warning, confirm } = useAlert()
+  const { success, error, warning } = useAlert()
   const [users, setUsers] = useState<User[]>([])
   const pager = usePagination(users);
   const [name, setName] = useState('')
