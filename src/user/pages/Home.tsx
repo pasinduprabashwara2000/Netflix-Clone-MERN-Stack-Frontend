@@ -7,6 +7,15 @@ import Hero from '../components/Hero'
 import ContentRow from '../components/ContentRow'
 import type { Section } from '../components/Navbar'
 
+// banner title for each tab (matched ignoring case and punctuation)
+const BANNER_TITLES: Record<Section, string> = {
+    all: 'Joker',
+    Movie: 'Avengers Endgame',
+    Series: 'Queen of Tears',
+}
+
+const simplify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]/g, '')
+
 function Home({ section }: { section: Section }) {
     const [contents, setContents] = useState<Content[]>([])
     const [loading, setLoading] = useState(true)
@@ -55,9 +64,14 @@ function Home({ section }: { section: Section }) {
     )
 
     const hero = useMemo(() => {
+        const wanted = simplify(BANNER_TITLES[section] ?? '')
+        const chosen = visible.find((c) => simplify(c.title) === wanted)
+        if (chosen) return chosen
+
+        // fallback if that title is missing from the catalog
         const pool = visible.filter((c) => c.isFeatured)
         return [...(pool.length ? pool : visible)].sort((a, b) => b.avgRating - a.avgRating)[0]
-    }, [visible])
+    }, [visible, section])
 
     const visiblePicks = useMemo(
         () => (section === 'all' ? picks : picks.filter((c) => c.type === section)),
