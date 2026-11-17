@@ -3,6 +3,7 @@ import {planApi, userApi, subscriptionApi, profileApi, genreApi, contentApi, sea
 import type {Plan, User, Subscription, Profile, Genre, Content, Season, Episode, WatchList,} from '../../services/api'
 import { ui } from '../../lib/ui'
 import { useAlert } from '../../alerts/context'
+import AiInsights from './AiInsights'
 
 type Data = {
     users: User[]
@@ -218,6 +219,8 @@ function Dashboard() {
                     </tbody>
                 </table>
             </div>
+
+            <AiInsights />
         </div>
     )
 }
