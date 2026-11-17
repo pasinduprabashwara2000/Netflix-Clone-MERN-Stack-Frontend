@@ -64,6 +64,13 @@ function App() {
                         )
                     })}
                 </nav>
+
+                <a
+                    href="/"
+                    className="mt-4 block border-2 border-zinc-700 bg-zinc-950 px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-zinc-400 transition hover:border-brand hover:text-brand md:mt-8"
+                >
+                    ← Back to site
+                </a>
             </aside>
 
             <main className="p-4 sm:p-6 md:p-10">

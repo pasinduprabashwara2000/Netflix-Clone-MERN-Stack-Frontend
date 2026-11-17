@@ -26,7 +26,7 @@ export const errorMessage = (err: unknown, fallback: string): string =>
     axios.isAxiosError(err) ? (err.response?.data?.message ?? fallback) : fallback
 
 // ---------- account ----------
-export type Me = { id: string; name: string; email: string }
+export type Me = { id: string; name: string; email: string; role: 'Admin' | 'User' }
 
 export const getMe = () => http.get<Me>('/auth/me').then((r) => r.data)
 

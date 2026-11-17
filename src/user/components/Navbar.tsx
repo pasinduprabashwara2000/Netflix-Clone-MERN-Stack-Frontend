@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import SearchBar from './SearchBar'
-import { getProfile, logout } from '../auth'
+import { getProfile, getToken, logout } from '../auth'
+import { getMe } from '../accountApi'
 import { accountPath, goTo, profilesPath } from '../router'
 
 export type Section = 'all' | 'Movie' | 'Series'
@@ -23,6 +24,7 @@ type NavbarProps = {
 function Navbar({ active, onNavigate, activeQuery, onSearch }: NavbarProps) {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
+    const [isAdmin, setIsAdmin] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
     const profile = getProfile()
 
@@ -31,6 +33,22 @@ function Navbar({ active, onNavigate, activeQuery, onSearch }: NavbarProps) {
         onScroll()
         window.addEventListener('scroll', onScroll, { passive: true })
         return () => window.removeEventListener('scroll', onScroll)
+    }, [])
+
+    // only Admin accounts see the "Admin Panel" link
+    useEffect(() => {
+        if (!getToken()) return
+        let cancelled = false
+
+        getMe()
+            .then((me) => {
+                if (!cancelled) setIsAdmin(me.role === 'Admin')
+            })
+            .catch(() => {})
+
+        return () => {
+            cancelled = true
+        }
     }, [])
 
     // close the profile menu when clicking anywhere outside it
@@ -141,6 +159,16 @@ function Navbar({ active, onNavigate, activeQuery, onSearch }: NavbarProps) {
                             >
                                 Switch Profile
                             </button>
+
+                            {isAdmin && (
+                                <a
+                                    href="/admin"
+                                    role="menuitem"
+                                    className="block w-full px-4 py-2.5 text-left text-sm text-zinc-300 transition hover:bg-raised hover:text-white"
+                                >
+                                    Admin Panel
+                                </a>
+                            )}
 
                             <button
                                 type="button"
