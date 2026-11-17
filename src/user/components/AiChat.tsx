@@ -159,7 +159,7 @@ function AiChat() {
                 onClick={() => setOpen((v) => !v)}
                 className="fixed bottom-4 right-4 z-40 rounded-full bg-brand px-5 py-3 text-sm font-bold shadow-lg shadow-black/50 transition hover:bg-brand-600 sm:right-6"
             >
-                ✨ Ask AI
+                Ask AI
             </button>
         </>
     )
