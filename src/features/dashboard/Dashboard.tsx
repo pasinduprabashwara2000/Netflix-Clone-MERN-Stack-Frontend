@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import {planApi, userApi, subscriptionApi, profileApi, genreApi, contentApi, seasonApi, episodeApi} from '../../services/api'
-import type {Plan, User, Subscription, Profile, Genre, Content, Season, Episode} from '../../services/api'
+import {planApi, userApi, subscriptionApi, profileApi, genreApi, contentApi, seasonApi, episodeApi,} from '../../services/api'
+import type {Plan, User, Subscription, Profile, Genre, Content, Season, Episode,} from '../../services/api'
 import { ui } from '../../lib/ui'
 import { useAlert } from '../../alerts/context'
 import AiInsights from './AiInsights'
@@ -18,17 +18,12 @@ type Data = {
 
 type Row = { label: string; value: number }
 
-function StatCard({ label, value, icon, hint }: { label: string; value: string | number; icon: string; hint?: string }) {
+function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
     return (
         <div className={ui.statCard}>
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <p className={ui.statLabel}>{label}</p>
-                    <p className={ui.statValue}>{value}</p>
-                    {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
-                </div>
-                <div className={ui.statIcon} aria-hidden="true">{icon}</div>
-            </div>
+            <p className={ui.statLabel}>{label}</p>
+            <p className={ui.statValue}>{value}</p>
+            {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
         </div>
     )
 }
@@ -91,9 +86,9 @@ function Dashboard() {
                     genreApi.getAll(),
                     contentApi.getAll(),
                     seasonApi.getAll(),
-                    episodeApi.getAll()
+                    episodeApi.getAll(),
                 ])
-            setData({ users, profiles, plans, subscriptions, genres, contents, seasons, episodes})
+            setData({ users, profiles, plans, subscriptions, genres, contents, seasons, episodes })
         } catch (e) {
             error((e as Error).message)
         } finally {
@@ -131,6 +126,7 @@ function Dashboard() {
     const { users, profiles, plans, subscriptions, genres, contents, seasons, episodes } = data
 
     const activeUsers = users.filter((u) => u.isActive).length
+    const admins = users.filter((u) => u.role === 'Admin').length
     const activeSubs = subscriptions.filter((s) => s.status?.toLowerCase() === 'active')
     const planPrice = new Map(plans.map((p) => [p._id, Number(p.price) || 0]))
     const monthlyRevenue = activeSubs.reduce((sum, s) => sum + (planPrice.get(s.planId) ?? 0), 0)
@@ -157,27 +153,25 @@ function Dashboard() {
             </div>
 
             <div className={ui.statGrid}>
-                <StatCard label="Users" value={users.length} icon="👤" hint={`${activeUsers} active`} />
-                <StatCard label="Profiles" value={profiles.length} icon="🧑‍🤝‍🧑" hint={`${kidsProfiles} kids`} />
+                <StatCard label="Users" value={users.length} hint={`${activeUsers} active`} />
+                <StatCard label="Profiles" value={profiles.length} hint={`${kidsProfiles} kids`} />
                 <StatCard
                     label="Active subscriptions"
                     value={activeSubs.length}
-                    icon="💳"
                     hint={`${subscriptions.length} total`}
                 />
                 <StatCard
                     label="Monthly revenue"
                     value={`$${monthlyRevenue.toFixed(2)}`}
-                    icon="💰"
                     hint="From active subscriptions"
                 />
-                <StatCard label="Plans" value={plans.length} icon="📋" />
-                <StatCard label="Content" value={contents.length} icon="🎬" hint={`${genres.length} genres`} />
+                <StatCard label="Plans" value={plans.length} />
+                <StatCard label="Content" value={contents.length} hint={`${genres.length} genres`} />
                 <StatCard
                     label="Seasons / Episodes"
                     value={`${seasons.length} / ${episodes.length}`}
-                    icon="📺"
                 />
+                <StatCard label="Admins" value={admins} hint={`${users.length - admins} regular users`} />
             </div>
 
             <div className="grid gap-0 lg:grid-cols-2 lg:gap-6">
