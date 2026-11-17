@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import {planApi, userApi, subscriptionApi, profileApi, genreApi, contentApi, seasonApi, episodeApi, watchlistApi,} from '../../services/api'
-import type {Plan, User, Subscription, Profile, Genre, Content, Season, Episode, WatchList,} from '../../services/api'
+import {planApi, userApi, subscriptionApi, profileApi, genreApi, contentApi, seasonApi, episodeApi} from '../../services/api'
+import type {Plan, User, Subscription, Profile, Genre, Content, Season, Episode} from '../../services/api'
 import { ui } from '../../lib/ui'
 import { useAlert } from '../../alerts/context'
 import AiInsights from './AiInsights'
@@ -14,7 +14,6 @@ type Data = {
     contents: Content[]
     seasons: Season[]
     episodes: Episode[]
-    watchlist: WatchList[]
 }
 
 type Row = { label: string; value: number }
@@ -83,7 +82,7 @@ function Dashboard() {
     const load = async () => {
         setLoading(true)
         try {
-            const [users, profiles, plans, subscriptions, genres, contents, seasons, episodes, watchlist] =
+            const [users, profiles, plans, subscriptions, genres, contents, seasons, episodes] =
                 await Promise.all([
                     userApi.getAll(),
                     profileApi.getAll(),
@@ -92,10 +91,9 @@ function Dashboard() {
                     genreApi.getAll(),
                     contentApi.getAll(),
                     seasonApi.getAll(),
-                    episodeApi.getAll(),
-                    watchlistApi.getAll(),
+                    episodeApi.getAll()
                 ])
-            setData({ users, profiles, plans, subscriptions, genres, contents, seasons, episodes, watchlist })
+            setData({ users, profiles, plans, subscriptions, genres, contents, seasons, episodes})
         } catch (e) {
             error((e as Error).message)
         } finally {
@@ -130,7 +128,7 @@ function Dashboard() {
         )
     }
 
-    const { users, profiles, plans, subscriptions, genres, contents, seasons, episodes, watchlist } = data
+    const { users, profiles, plans, subscriptions, genres, contents, seasons, episodes } = data
 
     const activeUsers = users.filter((u) => u.isActive).length
     const activeSubs = subscriptions.filter((s) => s.status?.toLowerCase() === 'active')
@@ -180,7 +178,6 @@ function Dashboard() {
                     value={`${seasons.length} / ${episodes.length}`}
                     icon="📺"
                 />
-                <StatCard label="Watchlist items" value={watchlist.length} icon="⭐" />
             </div>
 
             <div className="grid gap-0 lg:grid-cols-2 lg:gap-6">
